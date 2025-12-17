@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <title>Παιχνίδι Κουκίδας 8x8</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        #game-container {
+            display: grid;
+            grid-template-columns: 30px repeat(8, 60px);
+            grid-template-rows: 30px repeat(8, 60px);
+            gap: 2px;
+            margin-top: 20px;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+
+        .header-cell {
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: blue;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Παιχνίδι Κουκίδας 8x8</h1>
+    <button id="playBtn">Play</button>
+    <div id="game-container"></div>
+
+    <script>
+        const ROWS = 8;
+        const COLS = 8;
+        const colors = ["#FFC0CB", "#ADD8E6", "#90EE90", "#FFFFE0", "#FFA07A", "#E6E6FA", "#F0E68C", "#FFB6C1"];
+        const alphabet = ['α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ'];
+
+        let dotRow = Math.floor(Math.random() * ROWS);
+        let dotCol = Math.floor(Math.random() * COLS);
+        let gameActive = false;
+
+        const container = document.getElementById('game-container');
+        const playBtn = document.getElementById('playBtn');
+
+        // Δημιουργία Πλέγματος
+        function createGrid() {
+            container.innerHTML = '';
+            
+            // Πάνω γράμματα (στήλες)
+            container.appendChild(document.createElement('div')); // κενό γωνιακό
+            for (let c = 0; c < COLS; c++) {
+                const header = document.createElement('div');
+                header.className = 'header-cell';
+                header.innerText = alphabet[c];
+                container.appendChild(header);
+            }
+
+            // Γραμμές με αριθμούς και κελιά
+            for (let r = 0; r < ROWS; r++) {
+                const rowLabel = document.createElement('div');
+                rowLabel.className = 'header-cell';
+                rowLabel.innerText = r + 1;
+                container.appendChild(rowLabel);
+
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    cell.id = `cell-${r}-${c}`;
+                    container.appendChild(cell);
+                }
+            }
+            updateDot();
+        }
+
+        function updateDot(color = "blue") {
+            // Αφαίρεση παλιάς κουκίδας αν υπάρχει
+            const oldDot = document.getElementById('dot');
+            if (oldDot) oldDot.remove();
+
+            // Τοποθέτηση νέας κουκίδας
+            const dot = document.createElement('div');
+            dot.id = 'dot';
+            dot.style.backgroundColor = color;
+            document.getElementById(`cell-${dotRow}-${dotCol}`).appendChild(dot);
+        }
+
+        function askPosition() {
+            const correct = `${dotRow + 1}${alphabet[dotCol]}`;
+            const answer = prompt("Σε ποια θέση είναι η μπλε κουκίδα; (π.χ. 1α)");
+
+            if (answer === correct) {
+                updateDot("green");
+            } else {
+                updateDot("red");
+                setTimeout(() => {
+                    alert(`Λάθος! Η σωστή θέση ήταν ${correct}`);
+                    location.reload(); // Επανεκκίνηση
+                }, 100);
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+
+            let moved = false;
+            if (e.key === "ArrowUp" && dotRow > 0) { dotRow--; moved = true; }
+            else if (e.key === "ArrowDown" && dotRow < ROWS - 1) { dotRow++; moved = true; }
+            else if (e.key === "ArrowLeft" && dotCol > 0) { dotCol--; moved = true; }
+            else if (e.key === "ArrowRight" && dotCol < COLS - 1) { dotCol++; moved = true; }
+
+            if (moved) {
+                updateDot("blue");
+                // Μικρή καθυστέρηση για να προλάβει ο παίκτης να δει την κίνηση
+                setTimeout(askPosition, 150);
+            }
+        });
+
+        playBtn.addEventListener('click', () => {
+            gameActive = true;
+            playBtn.disabled = true;
+            alert("Το παιχνίδι ξεκίνησε! Χρησιμοποίησε τα βελάκια στο πληκτρολόγιο.");
+        });
+
+        createGrid();
+    </script>
+</body>
+</html>
